@@ -22,7 +22,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 provider "tls" {}
@@ -31,17 +31,17 @@ provider "local" {}
 
 
 resource "aws_vpc" "vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
 }
 
 resource "aws_subnet" "public_subnet" {
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.0.0.0/24"
+  cidr_block = var.public_subnet_cidr
 }
 
 resource "aws_subnet" "private_subnet" {
   vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.0.2.0/24"
+  cidr_block = var.private_subnet_cidr
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -97,7 +97,7 @@ resource "aws_security_group" "public_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # replace with your ip
+    cidr_blocks = [var.public_ssh_cidr]
   }
 }
 
@@ -125,27 +125,27 @@ resource "tls_private_key" "kp" {
 
 resource "local_file" "kp_private" {
   content  = tls_private_key.kp.private_key_pem
-  filename = "./kp.pem"
+  filename = var.key_file_path
 }
 
 resource "aws_key_pair" "kp_public" {
-  key_name   = "kp-key"
+  key_name   = var.key_name
   public_key = tls_private_key.kp.public_key_openssh
 }
 
 resource "aws_instance" "ec2" {
-  ami             = "ami-0efcece6bed30fd98"
-  instance_type   = "t2.micro"
-  key_name        = aws_key_pair.kp_public.key_name
-  security_groups = [aws_security_group.private_sg.id]
-  subnet_id       = aws_subnet.private_subnet.id
+  ami                    = var.ami
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.kp_public.key_name
+  vpc_security_group_ids = [aws_security_group.private_sg.id]
+  subnet_id              = aws_subnet.private_subnet.id
 }
 
 resource "aws_instance" "bastion" {
-  ami                         = "ami-0efcece6bed30fd98"
-  instance_type               = "t2.micro"
+  ami                         = var.ami
+  instance_type               = var.instance_type
   key_name                    = aws_key_pair.kp_public.key_name
-  security_groups             = [aws_security_group.public_sg.id]
+  vpc_security_group_ids      = [aws_security_group.public_sg.id]
   subnet_id                   = aws_subnet.public_subnet.id
   associate_public_ip_address = true
 }

@@ -28,6 +28,11 @@ variable "key_name" {
   default = "kp-key"
 }
 
+variable "key_file_path" {
+  type    = string
+  default = "./kp.pem"
+}
+
 variable "ami" {
   type    = string
   default = "ami-0efcece6bed30fd98"
