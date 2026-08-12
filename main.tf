@@ -13,15 +13,21 @@ terraform {
       source  = "hashicorp/tls"
       version = "4.0.4"
     }
+
+    local = {
+      source  = "hashicorp/local"
+      version = "2.4.0"
+    }
   }
 }
 
 provider "aws" {
-  # Configuration options
   region = "us-east-1"
 }
 
 provider "tls" {}
+
+provider "local" {}
 
 
 resource "aws_vpc" "vpc" {
@@ -48,7 +54,7 @@ resource "aws_eip" "eip" {
 
 resource "aws_nat_gateway" "ngw" {
   allocation_id = aws_eip.eip.id
-  subnet_id     = aws_subnet.private_subnet.id
+  subnet_id     = aws_subnet.public_subnet.id
 }
 
 resource "aws_route_table" "private_rt" {
@@ -123,7 +129,7 @@ resource "local_file" "kp_private" {
 }
 
 resource "aws_key_pair" "kp_public" {
-  key_name   = "kp.pem"
+  key_name   = "kp-key"
   public_key = tls_private_key.kp.public_key_openssh
 }
 
@@ -142,7 +148,6 @@ resource "aws_instance" "bastion" {
   security_groups             = [aws_security_group.public_sg.id]
   subnet_id                   = aws_subnet.public_subnet.id
   associate_public_ip_address = true
-
 }
 
 # scp keypair file to bastion and ssh into ec2.
