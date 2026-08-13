@@ -5,6 +5,7 @@ resource "tls_private_key" "kp" {
 resource "local_file" "kp_private" {
   content  = tls_private_key.kp.private_key_pem
   filename = var.key_file_path
+  file_permission = "0600"
 }
 
 resource "aws_key_pair" "kp_public" {
