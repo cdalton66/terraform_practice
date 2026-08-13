@@ -20,7 +20,7 @@ variable "private_subnet_cidr" {
 
 variable "public_ssh_cidr" {
   type    = string
-  default = "0.0.0.0/0"
+  default = "0.0.0.0/0" #this is replaced with my public IP 0.0.0.0/0 just for github
 }
 
 variable "key_name" {
@@ -33,12 +33,7 @@ variable "key_file_path" {
   default = "./kp.pem"
 }
 
-variable "ami" {
-  type    = string
-  default = "ami-0efcece6bed30fd98"
-}
-
 variable "instance_type" {
   type    = string
-  default = "t2.micro"
+  default = "t3.micro"
 }

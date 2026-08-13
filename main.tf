@@ -29,6 +29,21 @@ provider "tls" {}
 
 provider "local" {}
 
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04*-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
@@ -134,7 +149,7 @@ resource "aws_key_pair" "kp_public" {
 }
 
 resource "aws_instance" "ec2" {
-  ami                    = var.ami
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   key_name               = aws_key_pair.kp_public.key_name
   vpc_security_group_ids = [aws_security_group.private_sg.id]
@@ -142,7 +157,7 @@ resource "aws_instance" "ec2" {
 }
 
 resource "aws_instance" "bastion" {
-  ami                         = var.ami
+  ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.kp_public.key_name
   vpc_security_group_ids      = [aws_security_group.public_sg.id]
